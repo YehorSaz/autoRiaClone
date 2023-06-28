@@ -2,7 +2,7 @@ from django.http import Http404
 
 from rest_framework import status
 from rest_framework.generics import GenericAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.mixins import CreateModelMixin, ListModelMixin
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from apps.cars.models import CarModel
@@ -14,11 +14,20 @@ from .serializers import AutoParkSerializer
 
 class AutoParkListCreateView(ListCreateAPIView):
     serializer_class = AutoParkSerializer
-    queryset = AutoParkModel.objects.all()
+    queryset = AutoParkModel.objects.all_with_cars()
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return AllowAny(),
+
+        return IsAdminUser(),
+    # permission_classes = (IsAdminUser,)
+
 
 class AutoParkRetriveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     serializer_class = AutoParkSerializer
     queryset = AutoParkModel.objects.all()
+
 
 class AutoParkCarListCreateView(GenericAPIView):
     queryset = AutoParkModel.objects.all()
