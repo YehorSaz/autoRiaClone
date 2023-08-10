@@ -5,11 +5,18 @@ from django.db import models
 
 from core.enums.regex_enum import RegExEnum
 from core.models import BaseModel
+from core.services.upload_image_service import upload_image
 
-from apps.auto_parks.models import AutoParkModel
+from apps.cars.choices.brand_choices import BrandChoices
+from apps.cars.managers import CarManager
+from apps.posts.models import PostModel
 
-from .choices.body_type_choices import BodyTypeChoices
-from .managers import CarManager
+
+class ImageModel(BaseModel):
+    class Meta:
+        db_table = 'images'
+
+    image = models.ImageField(upload_to=upload_image, blank=True)
 
 
 class CarModel(BaseModel):
@@ -17,18 +24,19 @@ class CarModel(BaseModel):
         db_table = 'cars'
         ordering = ('id',)
 
-    brand = models.CharField(max_length=25, validators=(
+    brand = models.CharField(max_length=25, choices=BrandChoices.choices, validators=(
         V.RegexValidator(RegExEnum.BRAND.pattern, RegExEnum.BRAND.msg),
     ))
-    body = models.CharField(max_length=11, choices=BodyTypeChoices.choices)
+    model = models.CharField(max_length=50, blank=True)
     price = models.IntegerField(validators=(
         V.MinValueValidator(0),
-        V.MaxValueValidator(10000000)
+        V.MaxValueValidator(100000000)
     ))
     year = models.IntegerField(validators=(
         V.MinValueValidator(1935),
         V.MaxValueValidator(datetime.now().year)
     ))
-    auto_park = models.ForeignKey(AutoParkModel, on_delete=models.CASCADE, related_name='cars')
+    post = models.ForeignKey(PostModel, on_delete=models.CASCADE, related_name='car')
+    images = models.OneToOneField(ImageModel, on_delete=models.CASCADE, related_name='car', null=True)
     objects = models.Manager()
     my_objects = CarManager()

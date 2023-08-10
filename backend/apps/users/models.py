@@ -27,9 +27,10 @@ class ProfileModel(BaseModel):
         V.RegexValidator(RegExEnum.NAME.pattern, RegExEnum.NAME.msg)
     ])
     age = models.IntegerField(validators=[
-        V.MinValueValidator(16),
-        V.MaxValueValidator(150)
+        V.MinValueValidator(18),
+        V.MaxValueValidator(100)
     ])
+    phone = models.IntegerField()
     avatars = models.OneToOneField(AvatarModel, on_delete=models.CASCADE, related_name='profile', null=True)
 
 
@@ -42,7 +43,8 @@ class UserModel(AbstractBaseUser, PermissionsMixin, BaseModel):
     password = models.CharField(max_length=128, validators=[
         V.RegexValidator(RegExEnum.PASSWORD.pattern, RegExEnum.PASSWORD.msg)
     ])
-    is_active = models.BooleanField(default=False)
+    account_status = models.CharField(max_length=7, default='base')
+    is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     profile = models.OneToOneField(ProfileModel, on_delete=models.CASCADE, related_name='user', null=True)
 

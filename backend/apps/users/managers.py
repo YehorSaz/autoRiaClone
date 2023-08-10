@@ -9,6 +9,7 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_kwargs)
         user.set_password(password)
+        user.is_active = True
         user.save()
         return user
 
@@ -27,3 +28,5 @@ class UserManager(BaseUserManager):
 
     def all_with_profile(self):
         return self.select_related('profile')
+
+

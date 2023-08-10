@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.http import Http404
 
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListCreateAPIView, UpdateAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
@@ -9,10 +10,13 @@ from drf_yasg.utils import no_body, swagger_auto_schema
 
 from core.dataclasses.user_dataclass import UserDataClass
 from core.permission import IsAdminOrWriteOnlyPermission, IsSuperUser
+from core.permission.post_permissions import IsOwnerOrReadOnly
 from core.services.email_services import EmailService
 
 from apps.users.models import UserModel as User
 
+from ..posts.models import PostModel
+from ..posts.serializers import PostSerializer
 from .filters import UserFilter
 from .serializers import AvatarSerializer, UserSerializer
 
@@ -26,23 +30,16 @@ class UserListCreateView(ListCreateAPIView):
         post:
             Create User
     """
+
     serializer_class = UserSerializer
     queryset = UserModel.objects.all_with_profile()
     filterset_class = UserFilter
-    permission_classes = (IsAdminOrWriteOnlyPermission,)
+    # permission_classes = (IsAdminOrWriteOnlyPermission,)
+    permission_classes = (AllowAny,)
 
     def get_queryset(self):
         return super().get_queryset().exclude(pk=self.request.user.pk)
 
-
-# class UserAddAvatarView(GenericAPIView):
-#     serializer_class = AvatarSerializer
-#
-#     def put(self, *args, **kwargs):
-#         serializer = self.get_serializer(self.request.user.profile, data=self.request.FILES)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save()
-#         return Response(serializer.data, status.HTTP_200_OK)
 
 class UserAddAvatarView(UpdateAPIView):
     """
@@ -53,10 +50,6 @@ class UserAddAvatarView(UpdateAPIView):
 
     def get_object(self):
         return UserModel.objects.all_with_profile().get(pk=self.request.user.pk).profile
-
-    # def perform_update(self, serializer):
-    #     self.get_object().avatar.delete()
-    #     super().perform_update(serializer)
 
 
 class UserToAdminView(GenericAPIView):
@@ -165,3 +158,45 @@ class TestEmail(GenericAPIView):
     def get(self, *args, **kwargs):
         EmailService.test_email()
         return Response('ok')
+
+
+class UserPostListCreateView(GenericAPIView):
+    """
+        get:
+            Get posts by user id
+        post:
+            Create Post
+    """
+    queryset = UserModel.objects.all()
+    serializer_class = PostSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return IsOwnerOrReadOnly(),
+        return AllowAny(),
+
+    def get(self, *args, **kwargs):
+        pk = kwargs['pk']
+        if not UserModel.objects.filter(pk=pk).exists():
+            raise Http404()
+
+        post = PostModel.objects.filter(user_id=pk)
+        serializer = PostSerializer(post)
+        return Response(serializer.data, status.HTTP_200_OK)
+
+    def post(self, *args, **kwargs):
+        pk = self.request.user.pk
+        user: UserDataClass = self.request.user
+        data = self.request.data
+        serializer = PostSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        exists = UserModel.objects.filter(pk=pk).exists()
+        if not exists:
+            raise Http404()
+        # print(user.posts.count(), '--------------------')
+        elif user.posts.count() >= 1 and user.account_status == 'base':
+            return Response('Only 1 post for Base account', status.HTTP_403_FORBIDDEN)
+
+        serializer.save(user_id=pk)
+        return Response(serializer.data, status.HTTP_201_CREATED)

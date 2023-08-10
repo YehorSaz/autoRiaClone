@@ -14,9 +14,6 @@ celery = "*"
 redis = "*"
 django-celery-results = "*"
 django-celery-beat = "*"
-djangochannelsrestframework = "*"
-channels-redis = "*"
-daphne = "*"
 
 [dev-packages]
 isort = "*"

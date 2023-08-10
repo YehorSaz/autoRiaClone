@@ -1,4 +1,3 @@
-from rest_framework.permissions import IsAuthenticated
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'core.pagination.PagePagination',

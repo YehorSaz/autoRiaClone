@@ -12,7 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.dataclasses.user_dataclass import UserDataClass
 from core.services.email_services import EmailService
-from core.services.jwt_service import ActivateToken, JWTService, RecoveryToken, SocketToken
+from core.services.jwt_service import ActivateToken, JWTService, RecoveryToken
 
 from apps.users.models import UserModel as User
 from apps.users.serializers import UserSerializer
@@ -120,7 +120,4 @@ class NewUserPasswordView(GenericAPIView):
         # return Response('the password has been changed', status.HTTP_200_OK)
 
 
-class AuthTokenView(GenericAPIView):
-    def get(self, *args, **kwargs):
-        token = JWTService.create_token(self.request.user, SocketToken)
-        return Response({'token': str(token)}, status.HTTP_200_OK)
+

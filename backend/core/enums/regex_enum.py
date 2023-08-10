@@ -3,7 +3,7 @@ from enum import Enum
 
 class RegExEnum(Enum):
     BRAND = (
-        r'^[A-Z][a-zA-Z\d]{1,24}$',
+        r'^[А-ЯЁІЇЄҐ][А-яёЁіІєЄїЇґҐ]{1,49}|[A-Z][a-zA-Z\d]{1,49}$',
         'First letter uppercase min 2 max 25 ch'
     )
     PASSWORD = (
@@ -18,9 +18,9 @@ class RegExEnum(Enum):
         ]
     )
     NAME = (
-        r'^[А-ЯЁІЇЄҐ][А-яёЁіІєЄїЇґҐ]{1,49}$',
+        r'^[А-ЯЁІЇЄҐ][А-яёЁіІєЄїЇґҐ]{1,49}|[A-Z][a-zA-Z\d]{1,49}$',
         [
-            'Only cyrillic',
+            'only letters, without special characters',
             'First letter uppercase',
             'min 2 max 50 ch'
         ]

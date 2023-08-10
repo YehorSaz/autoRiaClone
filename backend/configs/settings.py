@@ -35,7 +35,6 @@ AUTH_USER_MODEL = 'users.UserModel'
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
@@ -48,11 +47,10 @@ INSTALLED_APPS = [
 
     # my_apps
     'core',
+    'apps.cars',
     'apps.auth',
     'apps.users',
-    'apps.cars',
-    'apps.auto_parks',
-    'apps.chat',
+    'apps.posts',
 ]
 
 MIDDLEWARE = [
@@ -79,7 +77,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'configs.wsgi.application'
-ASGI_APPLICATION = 'configs.asgi.application'
 
 
 # Database
