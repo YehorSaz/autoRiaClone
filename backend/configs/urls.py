@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/posts', include('apps.posts.urls')),
     path('api/users', include('apps.users.urls')),
     path('api/cars', include('apps.cars.urls')),
+    path('api/currencies', include('apps.currencies.urls')),
     path('api/doc', schema_view.with_ui('swagger', cache_timeout=0))
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

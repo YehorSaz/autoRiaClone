@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # my_apps
     'core',
     'apps.cars',
+    'apps.currencies',
     'apps.auth',
     'apps.users',
     'apps.posts',

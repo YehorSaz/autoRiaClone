@@ -4,11 +4,15 @@ from django.contrib.auth import get_user_model
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
+#
+import requests
 from configs.celery import app
 
 from core.dataclasses.user_dataclass import UserDataClass
 from core.services.jwt_service import ActivateToken, JWTService, RecoveryToken
 
+from apps.currencies.models import CurrenciesModel
+from apps.currencies.serializers import CurrenciesSerializer
 from apps.users.models import UserModel as User
 
 UserModel: User = get_user_model()
@@ -38,10 +42,32 @@ class EmailService:
     def change_password(cls, user: UserDataClass):
         token = JWTService.create_token(user, RecoveryToken)
         url = f'http://localhost:3000/recovery/{token}'
-        cls.__send_email(user.email, 'change_password.html', {'name': user.profile.name, 'url': url}, 'Change Password')
+        cls.__send_email.delay(user.email, 'change_password.html', {'name': user.profile.name, 'url': url},
+                               'Change Password')
 
-    @staticmethod
-    @app.task
-    def spam():
-        for user in UserModel.objects.all():
-            EmailService.__send_email(user.email, 'spam.html', {}, 'SPAM')
+
+#     # @staticmethod
+#     # @app.task
+#     # def spam():
+#     #     for user in UserModel.objects.all():
+#     #         EmailService.__send_email(user.email, 'spam.html', {}, 'SPAM')
+#
+# @staticmethod
+@app.task
+def get_courses():
+    data = requests.get('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5').json()
+    currency = CurrenciesModel.objects.all()
+    num_for_id = 0
+    if currency.count() >= 2:
+        currency.delete()
+    for item in data:
+        data_for_serializer = {
+            "name": f"{item['ccy']}",
+            "base_ccy": f"{item['base_ccy']}",
+            "buy": float(item['buy']),
+            "sale": float(item['sale'])
+        }
+        serializer = CurrenciesSerializer(data=data_for_serializer)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(id=(num_for_id + 1))
+        num_for_id += 1

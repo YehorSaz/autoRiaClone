@@ -6,13 +6,13 @@ from celery.schedules import crontab
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'configs.settings')
 
 app = Celery('configs')
-app.config_from_object('django.conf.settings', namespace='CELERY')
+app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    "send_spam_every_minutes": {
-        "task": "core.services.email_services.spam",
+    "courses": {
+        "task": "core.services.email_services.get_courses",
         "schedule": crontab()
     }
 }

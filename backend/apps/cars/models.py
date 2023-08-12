@@ -7,8 +7,9 @@ from core.enums.regex_enum import RegExEnum
 from core.models import BaseModel
 from core.services.upload_image_service import upload_image
 
-from apps.cars.choices.brand_choices import BrandChoices
 from apps.cars.managers import CarManager
+from apps.posts.choices.brand_choices import BrandChoices
+from apps.posts.choices.currencies_choices import CurrenciesChoices
 from apps.posts.models import PostModel
 
 
@@ -32,11 +33,12 @@ class CarModel(BaseModel):
         V.MinValueValidator(0),
         V.MaxValueValidator(100000000)
     ))
+    currency = models.CharField(max_length=3, choices=CurrenciesChoices.choices)
     year = models.IntegerField(validators=(
         V.MinValueValidator(1935),
         V.MaxValueValidator(datetime.now().year)
     ))
-    post = models.ForeignKey(PostModel, on_delete=models.CASCADE, related_name='car')
+    # post = models.ForeignKey(PostModel, on_delete=models.CASCADE, related_name='car')
     images = models.OneToOneField(ImageModel, on_delete=models.CASCADE, related_name='car', null=True)
     objects = models.Manager()
     my_objects = CarManager()

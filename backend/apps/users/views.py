@@ -194,7 +194,6 @@ class UserPostListCreateView(GenericAPIView):
         exists = UserModel.objects.filter(pk=pk).exists()
         if not exists:
             raise Http404()
-        # print(user.posts.count(), '--------------------')
         elif user.posts.count() >= 1 and user.account_status == 'base':
             return Response('Only 1 post for Base account', status.HTTP_403_FORBIDDEN)
 

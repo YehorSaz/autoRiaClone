@@ -2,13 +2,12 @@ from django.contrib.auth import get_user_model
 from django.utils.decorators import method_decorator
 
 from rest_framework import status
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from drf_yasg.utils import swagger_auto_schema
 
-from core.permission.is_superuser import IsAdminUser, IsSuperUser
 from core.permission.post_permissions import IsOwnerOrReadOnly
 
 from apps.users.models import UserModel as User
@@ -55,7 +54,6 @@ class PostRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
 
     def get(self, *args, **kwargs):
         post = self.get_object()
-        print(self.get_object().car.count(), '-------------')
         post.views_count += 1
         post.save()
         serializer = PostSerializer(post)

@@ -12,6 +12,14 @@ class ProfileDataClass:
 
 
 @dataclass
+class CurrencyDataclass:
+    name: str
+    base_ccy: str
+    buy: int
+    sale: int
+
+
+@dataclass
 class CarDataclass:
     id: int
     brand: str
