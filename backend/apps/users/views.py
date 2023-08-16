@@ -2,16 +2,16 @@ from django.contrib.auth import get_user_model
 from django.http import Http404
 
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from drf_yasg.utils import no_body, swagger_auto_schema
 
 from core.dataclasses.user_dataclass import UserDataClass
-from core.permission import IsAdminOrWriteOnlyPermission, IsSuperUser
+from core.permission import IsSuperUser
 from core.permission.post_permissions import IsOwnerOrReadOnly
-from core.services.email_services import EmailService
+from core.services.censor_service.cesor_service import censor
 
 from apps.users.models import UserModel as User
 
@@ -34,7 +34,6 @@ class UserListCreateView(ListCreateAPIView):
     serializer_class = UserSerializer
     queryset = UserModel.objects.all_with_profile()
     filterset_class = UserFilter
-    # permission_classes = (IsAdminOrWriteOnlyPermission,)
     permission_classes = (AllowAny,)
 
     def get_queryset(self):
@@ -152,14 +151,6 @@ class UnBlockAdminUserView(UnBlockUserView):
         return super().get_queryset().exclude(pk=self.request.user.pk)
 
 
-class TestEmail(GenericAPIView):
-    permission_classes = AllowAny,
-
-    def get(self, *args, **kwargs):
-        EmailService.test_email()
-        return Response('ok')
-
-
 class UserPostListCreateView(GenericAPIView):
     """
         get:
@@ -167,7 +158,7 @@ class UserPostListCreateView(GenericAPIView):
         post:
             Create Post
     """
-    queryset = UserModel.objects.all()
+    queryset = UserModel.objects.all_with_profile()
     serializer_class = PostSerializer
 
     def get_permissions(self):
@@ -196,6 +187,11 @@ class UserPostListCreateView(GenericAPIView):
             raise Http404()
         elif user.posts.count() >= 1 and user.account_status == 'base':
             return Response('Only 1 post for Base account', status.HTTP_403_FORBIDDEN)
-
         serializer.save(user_id=pk)
-        return Response(serializer.data, status.HTTP_201_CREATED)
+        censor_count = censor(data.get('city'))
+        if censor_count <= 0:
+            serializer.save(active_status=True)
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        else:
+            return Response('Знайдено підозрілу лексику, відредагуйте оголошення, оголошення не активне',
+                            status.HTTP_201_CREATED)

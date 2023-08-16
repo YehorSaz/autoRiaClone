@@ -29,33 +29,23 @@ class EmailService:
         msg.send()
 
     @classmethod
-    def test_email(cls):
-        cls.__send_email('inercoin@gmail.com', 'test_email.html', {}, 'Hello')
-
-    @classmethod
     def register_email(cls, user: UserDataClass):
         token = JWTService.create_token(user, ActivateToken)
-        url = f'http://localhost:3000/activate/{token}'
+        url = f'http://localhost/api/activate/{token}'
         cls.__send_email.delay(user.email, 'register.html', {'name': user.profile.name, 'url': url}, 'Register')
 
     @classmethod
     def change_password(cls, user: UserDataClass):
         token = JWTService.create_token(user, RecoveryToken)
-        url = f'http://localhost:3000/recovery/{token}'
+        url = f'http://localhost/api/recovery/{token}'
         cls.__send_email.delay(user.email, 'change_password.html', {'name': user.profile.name, 'url': url},
                                'Change Password')
 
 
-#     # @staticmethod
-#     # @app.task
-#     # def spam():
-#     #     for user in UserModel.objects.all():
-#     #         EmailService.__send_email(user.email, 'spam.html', {}, 'SPAM')
-#
-# @staticmethod
 @app.task
 def get_courses():
-    data = requests.get('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5').json()
+    url = 'https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'
+    data = requests.get(url).json()
     currency = CurrenciesModel.objects.all()
     num_for_id = 0
     if currency.count() >= 2:

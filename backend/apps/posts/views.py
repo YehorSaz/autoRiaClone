@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 
 from core.permission.post_permissions import IsOwnerOrReadOnly
+from core.services.censor_service.cesor_service import censor
 
 from apps.users.models import UserModel as User
 
@@ -24,8 +25,7 @@ class PostListView(ListAPIView):
     Get all Posts
     """
     serializer_class = PostSerializer
-    queryset = PostModel.objects.all()
-    # filterset_class = PostFilter
+    queryset = PostModel.objects.filter(active_status=True)
     permission_classes = (AllowAny,)
 
 
@@ -43,14 +43,30 @@ class PostRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
     queryset = PostModel.objects.all()
 
-    # permission_classes = (IsOwnerOrReadOnly,)
-
     def get_permissions(self):
         if self.request.method == 'GET':
             return AllowAny(),
         elif self.request.method == 'DELETE':
             return IsAdminUser(),
         return IsOwnerOrReadOnly(),
+
+    def patch(self, request, *args, **kwargs):
+        post = self.get_object()
+        if post.update_count >= 3:
+            return Response('only 3 times', status.HTTP_403_FORBIDDEN)
+        post.update_count += 1
+        post.save()
+        censor_count = censor(self.request.data['city'])
+        if censor_count <= 0:
+            post.active_status = True
+            post.save()
+        else:
+            post.active_status = False
+            post.save()
+            return Response('Знайдено підозрілу лексику, відредагуйте оголошення, оголошення не активне',
+                            status.HTTP_201_CREATED)
+
+        return super().patch(request, *args, **kwargs)
 
     def get(self, *args, **kwargs):
         post = self.get_object()

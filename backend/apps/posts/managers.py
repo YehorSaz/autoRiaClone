@@ -16,3 +16,15 @@ class PostManager(models.Manager):
     def all_with_cars(self):
         return self.prefetch_related('car')
 
+
+class UserCarQuerySet(models.QuerySet):
+    def get_car_by_post_id(self, pk):
+        return self.filter(post_id=pk)
+
+
+class UserCarManager(models.Manager):
+    def get_queryset(self):
+        return UserCarQuerySet(self.model)
+
+    def get_car_by_post_id(self, pk):
+        return self.get_queryset().get_car_by_post_id(pk)

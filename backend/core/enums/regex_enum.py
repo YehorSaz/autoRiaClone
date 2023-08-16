@@ -25,6 +25,14 @@ class RegExEnum(Enum):
             'min 2 max 50 ch'
         ]
     )
+    CITY = (
+        r'^[А-ЯЁІЇЄҐ][А-яёЁіІєЄїЇґҐ]{1,49}$',
+        [
+            'only letters, without special characters',
+            'First letter uppercase',
+            'min 3 max 50 ch'
+        ]
+    )
 
     def __init__(self, pattern: str, msg: str | list[str]):
         self.pattern = pattern
